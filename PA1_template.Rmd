@@ -1,0 +1,115 @@
+---
+title: "Peer Assessment 1 - Reproducible Research - Jerome GRANSAC"
+output: html_document
+---
+
+```{r, echo=FALSE}
+setwd("C:\\Users\\Jerome\\Documents\\R\\work\\5 - Reproducible Research\\Ass 1")
+```
+##NOTE:  
+###For this project, we use the "dplyr" library.      
+```{r dplyr, warning=FALSE, echo=FALSE, message=FALSE}
+library(dplyr)
+```
+
+###Loading and preprocessing the data  
+####1. Read Data into data frame df  
+```{r load_data}
+df<-read.csv("activity.csv")
+head(df)
+##summary(df)
+
+```
+
+####2. Clean df by removing NA values  
+```{r clean_data, echo=FALSE}
+
+##formatC(as.numeric(df$interval), width=4, flag="0")
+```
+
+
+
+###What is mean total number of steps taken per day?  
+I remove the missing values in the dataset.  
+```{r rm_NA, }
+dfNONA<-na.omit(df)
+head(dfNONA)
+```
+
+####1. Calculate the total number of steps taken per day  
+I have already removed the NA values above in dfNONA data frame. This is this data frame I am using below.
+```{r total_number_steps_per_day, warning=FALSE}
+## here we exclude the interval col
+##aggregate(dfNONA[, 1], list(dfNONA$date), sum)
+df_StepsPerDay<-dfNONA %>% select(date,steps) %>% group_by(date) %>% summarise_each(funs(sum))
+##df_StepsPerDay
+```
+
+  
+####2. Make a histogram of the total number of steps taken each day  
+```{r hist, echo=FALSE, fig.height=4}
+hist(as.data.frame(df_StepsPerDay)[,2], main="Histogram of the total number of steps taken each day", xlab="Total number of steps taken each day", ylab="Frequency", col="red")
+```
+
+####3. Calculate and report the mean and median of the total number of steps taken per day  
+Mean of the total number of steps taken per day is:
+```{r mean_display, echo=FALSE}
+s<-summary(as.data.frame(df_StepsPerDay)[,2])
+s["Mean"]
+```
+Median of the total number of steps taken per day is:
+```{r median_display, echo=FALSE}
+s["Median"]
+```
+
+###What is the average daily activity pattern?  
+####1. Time series plot of the 5-minute interval and the average number of steps taken, averaged across all days    
+```{r step_interval, warning=FALSE,fig.height=4, echo=FALSE}
+df_AvgStepsPerInterval5<-dfNONA %>% select(interval,steps) %>% group_by(interval) %>% summarise_each(funs(mean))
+names(df_AvgStepsPerInterval5)<-c("Interval", "Avg_Steps")
+plot( Avg_Steps~Interval,df_AvgStepsPerInterval5, xact="n", type="l",ylab="AVG number of steps taken", xlab="5mn intervals", main="Average number of steps taken every 5mn, averaged across all days")
+
+```
+
+####2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?  
+``` {r max_number_steps, echo=TRUE, results="hide"}
+Max_number<-filter(df_AvgStepsPerInterval5, Avg_Steps == max(df_AvgStepsPerInterval5$Avg_Steps))
+##Max_number<-df_AvgStepsPerInterval5[which.max(df_AvgStepsPerInterval5$Avg_Steps),]$Interval
+```
+
+####The 5-minute interval that contains the max average number of steps across all days in the dataset is:  **`r Max_number[1]`**
+
+
+###Imputing missing values
+```{r missing_values, echo=TRUE,results="hide"}
+missing_values<-sum(is.na(df))
+```
+#### 1. The total number of missing values in the dataset is **`r missing_values`** rows  
+
+####2. Devise a strategy for filling in all of the missing values in the dataset.
+The strategy I choose for filing in all of the missing values is using the mean for that 5-minute interval.   
+For this, I need to retrieve the mean steps in the dataset for each 5-mn interval from a function below coded. Then when there is a NA step for a perticular interval, I get the mean of the steps for this interval with this function.
+```{r function}
+getMeanStepsToNA<-function()
+{
+  df_Filled<-df
+  ##parsing all NA rows in steps from original dataset
+  for (i in 1:nrow(df)) 
+  {
+    if(is.na(df[i,]$steps))
+    {
+      df_Filled[i,]$steps <- df_AvgStepsPerInterval5[df_AvgStepsPerInterval5$Interval==df[i,]$interval, ]$Avg_Steps
+    }
+  }
+  df_Filled
+}
+```
+
+
+####Create a new dataset that is equal to the original dataset but with the missing data filled in
+I use the function below: **getMeanStepsFrom** for each interval where avg step is NA
+```{r getMeanStepsToNA, cache=TRUE}
+head(df)
+df_Filled<-getMeanStepsToNA()
+head(df_Filled)
+```
