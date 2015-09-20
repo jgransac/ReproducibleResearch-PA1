@@ -72,6 +72,12 @@ df_StepsPerDay<-dfNONA %>% select(date,steps) %>% group_by(date) %>% summarise_e
 <br/>
 
 ####2. Make a histogram of the total number of steps taken each day  
+
+```r
+hist(as.data.frame(df_StepsPerDay)[,2], main="Histogram of the total number of steps taken each day", 
+     xlab="Total number of steps taken each day", ylab="Frequency", col="red")
+```
+
 ![plot of chunk hist](figure/hist-1.png) 
 
 <br/>
@@ -79,10 +85,21 @@ df_StepsPerDay<-dfNONA %>% select(date,steps) %>% group_by(date) %>% summarise_e
 ####3. Calculate and report the mean and median of the total number of steps taken per day  
 Mean of the total number of steps taken per day is:
 
+```r
+s<-summary(as.data.frame(df_StepsPerDay)[,2])
+mean_sum<-sprintf("%1.2f",as.numeric(s["Mean"]))
+mean(as.data.frame(df_StepsPerDay)[,2])
+```
+
 ```
 ## [1] 10766.19
 ```
 Median of the total number of steps taken per day is:
+
+```r
+median_sum<-sprintf("%1.2f",as.numeric(s["Median"]))
+median(as.data.frame(df_StepsPerDay)[,2])
+```
 
 ```
 ## [1] 10765
@@ -96,6 +113,13 @@ Median of the total number of steps taken per day is:
 
 ###What is the average daily activity pattern?  
 ####1. Time series plot of the 5-minute interval and the average number of steps taken, averaged across all days    
+
+```r
+df_AvgStepsPerInterval5<-dfNONA %>% select(interval,steps) %>% group_by(interval) %>% summarise_each(funs(mean))
+names(df_AvgStepsPerInterval5)<-c("Interval", "Avg_Steps")
+plot( Avg_Steps~Interval,df_AvgStepsPerInterval5, xact="n", type="l",ylab="AVG number of steps taken", xlab="5mn intervals", main="Average number of steps taken every 5mn, averaged across all days")
+```
+
 ![plot of chunk step_interval](figure/step_interval-1.png) 
 
 <br/>
@@ -157,6 +181,15 @@ dimdfFilled<-dim(df_Filled)
 1. we have 17568 rows and 3 columns in the original dataset and 17568 rows and 3 columns in the filled dataset. Same dimensions for both datasets.  
 2. Here are means and median for each data frame:
 
+```r
+summ_df<-summary(df)
+summ_dfFilled<-summary(df_Filled)
+##library(xtable)
+##xt_df<-xtable(summary(df))
+##xt_dfFilled<-xtable(summ_dfFilled)
+##print(xt_df,type="html")
+##print(xt_dfFilled,type="html")
+```
 Summarize of df Original dataset :  
 Mean: Median :  0.00    
 Median: Mean   : 37.38    
